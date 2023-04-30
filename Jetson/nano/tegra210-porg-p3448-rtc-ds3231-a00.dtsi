@@ -1,0 +1,20 @@
+#include <dt-bindings/platform/t210/t210.h>
+
+/ {
+i2c@7000c400 {
+    status = "okay";
+    ds3231: rtc@68 {
+        compatible = "maxim,ds3231";
+        reg = <0x68>;
+        #clock-cells = <0>;
+        status = "okay";
+    };
+
+   eeprom_a@57{
+	compatible = "atmel,24c32";
+	reg = <0x57>;
+	pagesize = <32>;
+	status = "okay";
+	    };
+    };
+};
