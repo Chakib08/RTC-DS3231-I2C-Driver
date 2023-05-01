@@ -3,40 +3,7 @@
  * DS3231 I2C Real Time Clock driver
  */
 
-#include <linux/module.h>
-#include <linux/i2c.h>
-#include <linux/rtc.h>
-#include <linux/of.h>
-#include <linux/of_device.h>
-#include <linux/bcd.h>
-#include <linux/clk.h>
-#include <linux/debugfs.h>
-#include <linux/delay.h>
-#include <linux/fs.h>
-#include <linux/kernel.h>
-#include <linux/regmap.h>
-
-/* DS3231 I2C Registers Address */
-#define DS3231_REG_ADDR_SECONDS 0x00
-#define DS3231_REG_ADDR_MINUTES 0x01
-#define DS3231_REG_ADDR_HOURS 0x02
-#define DS3231_REG_ADDR_DAY 0x03
-#define DS3231_REG_ADDR_DATE 0x04
-#define DS3231_REG_ADDR_MONTH_CENTURY 0x05
-#define DS3231_REG_ADDR_YEAR 0x06
-#define DS3231_REG_ADDR_ALARM_1_SECONDS 0x07
-#define DS3231_REG_ADDR_ALARM_1_MINUTES 0x08
-#define DS3231_REG_ADDR_ALARM_1_HOURS 0x09
-#define DS3231_REG_ADDR_ALARM_1_DAY_DATE 0x0A
-#define DS3231_REG_ADDR_ALARM_2_MINUTES 0x0B
-#define DS3231_REG_ADDR_ALARM_2_HOURS 0x0C
-#define DS3231_REG_ADDR_ALARM_2_DAY_DATE 0x0D
-#define DS3231_REG_ADDR_CONTROL 0x0E
-#define DS3231_REG_ADDR_CONTROL_STATUS 0x0F
-#define DS3231_REG_ADDR_AGING_OFFSET 0x10
-#define DS3231_REG_ADDR_MSB_TEMP 0x11
-#define DS3231_REG_ADDR_LSB_TEMP 0x12
-
+#include "ds3231.h"
 
 /* DS3231 data structure */
 struct ds3231
@@ -45,19 +12,6 @@ struct ds3231
     struct regmap *regmap;
 };
 
-/**
- * ds3231_write_reg() - Write a value to a register on the DS3231 RTC
- * @dev: Pointer to the device structure
- * @addr: The address of the register to write to
- * @val: The value to write to the register
- *
- * This function writes a value to a register on the DS3231 RTC using the
- * provided device pointer, register address, and value. It uses the regmap
- * subsystem to perform the actual I2C write operation, and includes error
- * handling to report any I2C write failures.
- *
- * Returns: 0 on success, or an error code on failure
- */
 static int ds3231_write_reg(struct device *dev, u16 addr, u8 val)
 {
     struct ds3231 *priv = dev_get_drvdata(dev);   // Get the pointer to the DS3231 private data
@@ -66,6 +20,8 @@ static int ds3231_write_reg(struct device *dev, u16 addr, u8 val)
     err = regmap_write(priv->regmap, addr, val);  // Write the value to the specified register using regmap
     if (err)
         dev_err(dev, "%s:i2c write failed, 0x%x = %x\n", __func__, addr, val); // Report any I2C write errors
+    
+    dev_info(dev, "%s:i2c write, 0x%x = %x\n", __func__, addr, val); // Report any I2C write
 
     /* delay before next i2c command */
     usleep_range(100, 110);  // Add a delay to ensure the I2C bus has enough time to settle
@@ -73,15 +29,6 @@ static int ds3231_write_reg(struct device *dev, u16 addr, u8 val)
     return err; // Return the error code (if any)
 }
 
-/**
- * ds3231_read_reg() - read a register value from the DS3231 RTC
- *
- * @dev: pointer to the device structure
- * @addr: the register address to read from
- * @val: pointer to store the value read from the register
- *
- * Return: 0 on success, negative error code on failure
- */
 // static int ds3231_read_reg(struct device *dev, u16 addr, unsigned int *val)
 // {
 //     struct ds3231 *priv = dev_get_drvdata(dev);
@@ -102,9 +49,12 @@ static int ds3231_write_reg(struct device *dev, u16 addr, u8 val)
 void ds3231_initialize(struct device *dev)
 {
     ds3231_write_reg(dev, DS3231_REG_ADDR_SECONDS, 0x04);
+    ds3231_write_reg(dev, DS3231_REG_ADDR_MINUTES, 0x03);
+    ds3231_write_reg(dev, DS3231_REG_ADDR_HOURS, 0x02);
+    ds3231_write_reg(dev, DS3231_REG_ADDR_DAY, 0x07);
 }
 
-static  struct regmap_config ds3231_regmap_config = {
+static struct regmap_config ds3231_regmap_config = {
 	.reg_bits = 16,
 	.val_bits = 8,
 	.cache_type = REGCACHE_RBTREE,
