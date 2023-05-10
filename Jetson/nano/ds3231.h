@@ -48,33 +48,6 @@ typedef struct _ds3231_time
     u16 year;   /* Year part of the time (2000-2199) */
 } ds3231_time;
 
-/**
- * ds3231_write_reg() - Write a value to a register on the DS3231 RTC
- * @dev: Pointer to the device structure
- * @addr: The address of the register to write to
- * @val: The value to write to the register
- *
- * This function writes a value to a register on the DS3231 RTC using the
- * provided device pointer, register address, and value. It uses the regmap
- * subsystem to perform the actual I2C write operation, and includes error
- * handling to report any I2C write failures.
- *
- * Returns: 0 on success, or an error code on failure
- */
-static int ds3231_write_reg(struct device *dev, u16 addr, u8 val);
-
-/**
- * ds3231_read_reg() - read a register value from the DS3231 RTC
- *
- * @dev: pointer to the device structure
- * @addr: the register address to read from
- * @val: pointer to store the value read from the register
- *
- * Return: 0 on success, negative error code on failure
- */
-// static int ds3231_read_reg(struct device *dev, u16 addr, unsigned int *val)
-
 //static int ds3231_write_time(ds3231_time time);
-
 
 //static int ds3231_read_time(ds3231_time time);

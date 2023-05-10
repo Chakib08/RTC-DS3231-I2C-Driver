@@ -12,6 +12,19 @@ struct ds3231
     struct regmap *regmap;
 };
 
+/**
+ * ds3231_write_reg() - Write a value to a register on the DS3231 RTC
+ * @dev: Pointer to the device structure
+ * @addr: The address of the register to write to
+ * @val: The value to write to the register
+ *
+ * This function writes a value to a register on the DS3231 RTC using the
+ * provided device pointer, register address, and value. It uses the regmap
+ * subsystem to perform the actual I2C write operation, and includes error
+ * handling to report any I2C write failures.
+ *
+ * Returns: 0 on success, or an error code on failure
+ */
 static int ds3231_write_reg(struct device *dev, u16 addr, u8 val)
 {
     struct ds3231 *priv = dev_get_drvdata(dev);   // Get the pointer to the DS3231 private data
@@ -29,22 +42,32 @@ static int ds3231_write_reg(struct device *dev, u16 addr, u8 val)
     return err; // Return the error code (if any)
 }
 
-// static int ds3231_read_reg(struct device *dev, u16 addr, unsigned int *val)
-// {
-//     struct ds3231 *priv = dev_get_drvdata(dev);
-//     int err;
+/**
+ * ds3231_read_reg() - read a register value from the DS3231 RTC
+ *
+ * @dev: pointer to the device structure
+ * @addr: the register address to read from
+ * @val: pointer to store the value read from the register
+ *
+ * Return: 0 on success, negative error code on failure
+ */
+static int ds3231_read_reg(struct device *dev, u16 addr, u32 *val)
+{
+    struct ds3231 *priv = dev_get_drvdata(dev);
+    int err;
 
-//     /* Read the value from the register at the specified address */
-//     err = regmap_read(priv->regmap, addr, val);
+    /* Read the value from the register at the specified address */
+    err = regmap_read(priv->regmap, addr, val);
+    dev_info(dev, "%s:i2c read data, 0x%x = 0x%x", __func__, addr, *val);
 
-//     if (err)
-//         dev_err(dev, "%s:i2c read failed, 0x%x\n", __func__, addr);
+    if (err)
+        dev_err(dev, "%s:i2c read failed, 0x%x\n", __func__, addr);
 
-//     /* Delay before the next I2C command to avoid overloading the bus */
-//     usleep_range(100, 110);
+    /* Delay before the next I2C command to avoid overloading the bus */
+    usleep_range(100, 110);
 
-//     return err;
-// }
+    return err;
+}
 
 void ds3231_initialize(struct device *dev)
 {
@@ -64,6 +87,8 @@ static int ds3231_probe(struct i2c_client *client, const struct i2c_device_id *i
 {
     struct ds3231 *priv;
     int err = 0;
+    u32 data;
+
     //struct device_node *node = client->dev.of_node;
 
     dev_info(&client->dev, "[DS3231]: probing Real Time Clock\n");
@@ -80,7 +105,12 @@ static int ds3231_probe(struct i2c_client *client, const struct i2c_device_id *i
 
     dev_set_drvdata(&client->dev, priv);
 
+
     ds3231_initialize(&client->dev);
+    ds3231_read_reg(&client->dev, DS3231_REG_ADDR_SECONDS, &data);
+    ds3231_read_reg(&client->dev, DS3231_REG_ADDR_MINUTES, &data);
+    ds3231_read_reg(&client->dev, DS3231_REG_ADDR_HOURS,  &data);
+    ds3231_read_reg(&client->dev, DS3231_REG_ADDR_DAY, &data);
 
 	dev_info(&client->dev, "%s:  success\n", __func__);
 
