@@ -1,16 +1,3 @@
-#include <linux/module.h>
-#include <linux/i2c.h>
-#include <linux/rtc.h>
-#include <linux/of.h>
-#include <linux/of_device.h>
-#include <linux/bcd.h>
-#include <linux/clk.h>
-#include <linux/debugfs.h>
-#include <linux/delay.h>
-#include <linux/fs.h>
-#include <linux/kernel.h>
-#include <linux/regmap.h>
-
 /* DS3231 I2C Time Registers Address */
 #define DS3231_REG_ADDR_SECONDS 0x00
 #define DS3231_REG_ADDR_MINUTES 0x01
